@@ -22,6 +22,7 @@ const checkToken = (req, res, next) => {
 /* GET home page. */
 router.post("/register", authController.register);
 router.post("/authenticate", validate.login, authController.login);
-router.post("/resetPassword", validate.email, authController.resetPassword);
+router.post("/sendResetToken", validate.email, authController.sendResetToken);
+router.post("/resetPassword", validate.password, authController.resetPassword);
 
 module.exports = router;

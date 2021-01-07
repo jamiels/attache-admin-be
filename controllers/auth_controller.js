@@ -109,7 +109,22 @@ const generateEmailMessage = (address, token) => {
   return msg;
 };
 
-exports.resetPassword = async (req, res) => {
+const removeResetToken = async userId => {
+  try {
+    const userAccount = await User.findByPk(userId);
+    if (Date.now < userAccount.tokenExpirationDate) {
+      return;
+    }
+    userAccount.resetToken = null;
+    userAccount.tokenExpirationDate = null;
+    userAccount.isResetTokenValid = false;
+  } catch (err) {
+    console.warn(err.message);
+    console.warn(err.stack);
+  }
+};
+
+exports.sendResetToken = async (req, res) => {
   try {
     const userAccount = await User.findOne({
       where: {
@@ -125,11 +140,42 @@ exports.resetPassword = async (req, res) => {
     const resetToken = await generateResetToken(20);
     userAccount.resetToken = resetToken;
     userAccount.tokenExpirationDate = Date.now() + 1800000; // 30 minutes
+    userAccount.isResetTokenValid = true;
     await userAccount.save();
-
+    setTimeout(() => removeResetToken(userAccount.id), 1800010);
     const emailMsg = generateEmailMessage(userAccount.email, resetToken);
     await sgMail.send(emailMsg);
     return res.status(200).json({ msg: "Success", success: true });
+  } catch (err) {
+    console.warn(err.message);
+    console.warn(err.stack);
+    return res.status(400).json({ err: "Somethings wrong", success: false });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const userAccount = await User.findOne({
+      where: {
+        resetToken: req.body.resetToken,
+      },
+    });
+    const hashedPass = await bcrypt.hash(req.body.password, salt);
+    userAccount.resetToken = null;
+    userAccount.tokenExpirationDate = null;
+    userAccount.isResetTokenValid = false;
+    userAccount.password = hashedPass;
+    await userAccount.save();
+    const payload = {
+      id: userAccount.id,
+      login: userAccount.login,
+    };
+    const token = jwt.sign({ data: payload }, process.env.JWT_TOKEN, {
+      expiresIn: process.env.JWT_EXPIRATION_DATE,
+    });
+    return res
+      .status(201)
+      .json({ msg: "Success", success: true, token: `Bearer ${token}` });
   } catch (err) {
     console.warn(err.message);
     console.warn(err.stack);

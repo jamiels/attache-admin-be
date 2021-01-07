@@ -42,6 +42,11 @@ const User = sequelizeConnection.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    isResetTokenValid: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
   },
   {
     sequelizeConnection,
