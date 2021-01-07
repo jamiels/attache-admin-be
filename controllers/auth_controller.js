@@ -12,7 +12,11 @@ const salt = bcrypt.genSaltSync(10);
 exports.register = async (req, res) => {
   console.log(req.body);
   try {
-    const checkUsername = await User.findOne({ login: req.body.login });
+    const checkUsername = await User.findOne({
+      where: {
+        login: req.body.login,
+      },
+    });
     if (checkUsername) {
       return res
         .status(409)
@@ -47,7 +51,11 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const userAccount = await User.findOne({ login: req.body.login });
+    const userAccount = await User.findOne({
+      where: {
+        login: req.body.login,
+      },
+    });
     if (!userAccount) {
       return res.status(401).json({
         err: "User account with this login could not be found",
@@ -103,7 +111,11 @@ const generateEmailMessage = (address, token) => {
 
 exports.resetPassword = async (req, res) => {
   try {
-    const userAccount = await User.findOne({ email: req.body.email });
+    const userAccount = await User.findOne({
+      where: {
+        email: req.body.email,
+      },
+    });
     if (!userAccount) {
       return res.status(401).json({
         err: "User account with this email could not be found",
