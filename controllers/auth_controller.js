@@ -45,6 +45,7 @@ exports.register = async (req, res) => {
   } catch (err) {
     console.warn(err.message);
     console.warn(err.stack);
+    console.warn(req.body);
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };
@@ -85,6 +86,7 @@ exports.login = async (req, res) => {
   } catch (err) {
     console.warn(err.message);
     console.warn(err.stack);
+    console.warn(req.body);
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };
@@ -149,6 +151,7 @@ exports.sendResetToken = async (req, res) => {
   } catch (err) {
     console.warn(err.message);
     console.warn(err.stack);
+    console.warn(req.body);
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };
@@ -160,6 +163,9 @@ exports.resetPassword = async (req, res) => {
         resetToken: req.body.resetToken,
       },
     });
+    if (!userAccount) {
+      return res.status(400).json({ err: "Wrong reset token", success: false });
+    }
     const hashedPass = await bcrypt.hash(req.body.password, salt);
     userAccount.resetToken = null;
     userAccount.tokenExpirationDate = null;
@@ -179,6 +185,7 @@ exports.resetPassword = async (req, res) => {
   } catch (err) {
     console.warn(err.message);
     console.warn(err.stack);
+    console.warn(req.body);
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };

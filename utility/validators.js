@@ -42,7 +42,6 @@ exports.register = [
     .isEmail()
     .withMessage("Invalid email address!")
     .bail()
-    .normalizeEmail()
     .bail(),
   (req, res, next) => {
     console.log(req.body);
@@ -85,8 +84,6 @@ exports.email = [
     .trim()
     .isEmail()
     .withMessage("Invalid email address!")
-    .bail()
-    .normalizeEmail()
     .bail(),
   (req, res, next) => {
     const errors = validationResult(req);
