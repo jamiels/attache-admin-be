@@ -1,7 +1,7 @@
 const { Sequelize } = require("sequelize");
 
-console.log(process.env.LOCAL_DB);
-const sequelizeConnection = new Sequelize(process.env.LOCAL_DB);
+console.log(process.env.PROPER_DB);
+const sequelizeConnection = new Sequelize(process.env.PROPER_DB);
 
 const synchronizeDatabaseTables = async sequelizeInstance => {
   console.log("Database sync");
