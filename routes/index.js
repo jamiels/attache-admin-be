@@ -19,8 +19,7 @@ const checkToken = (req, res, next) => {
   }
 };
 
-/* GET home page. */
-router.post("/register", authController.register);
+router.post("/register", validate.register, authController.register);
 router.post("/authenticate", validate.login, authController.login);
 router.post("/sendResetToken", validate.email, authController.sendResetToken);
 router.post("/resetPassword", validate.password, authController.resetPassword);
