@@ -24,3 +24,5 @@ If you want to enable server restart on file changes
 `$ yarn run devstart`
 or
 `$ npm run devstart`
+
+App runs on [http://localhost:3000/](http://localhost:3000/)
