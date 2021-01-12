@@ -5,7 +5,8 @@ const User = sequelizeConnection.define(
   "User",
   {
     id: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
       allowNull: false,
       primaryKey: true,
     },
@@ -29,10 +30,10 @@ const User = sequelizeConnection.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    isAccountDisabled: {
+    isEnabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false,
+      defaultValue: true,
     },
     resetToken: {
       type: DataTypes.STRING,
@@ -51,6 +52,10 @@ const User = sequelizeConnection.define(
   {
     sequelizeConnection,
     modelName: "User",
+    timestamps: true,
+    createdAt: "CREATED_DT",
+    updatedAt: false,
+    createdOn: false,
   },
 );
 

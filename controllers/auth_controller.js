@@ -4,11 +4,32 @@ const sgMail = require("@sendgrid/mail");
 const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const User = require("../models/user");
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 // const { salt } = process.env;
 const salt = bcrypt.genSaltSync(10);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const tokenResetTemplate = (address, token) => {
+  const msg = {
+    to: address,
+    subject: "Password reset token",
+    text: token,
+  };
+  return msg;
+};
+
+const confirmationTemplate = (address, username) => {
+  const msg = {
+    to: address,
+    subject: "Created account and we want to notify you",
+    text: `Hello there, ${username}. Thanks for registering at attache. If you didn't do that you need to do something.`,
+  };
+  return msg;
+};
+
+const sendEmail = async body => {
+  const email = { ...body, from: "jozwa.zawadiaka@gmail.com" };
+  await sgMail.send(email);
+};
+
 exports.register = async (req, res) => {
   console.log(req.body);
   try {
@@ -25,16 +46,17 @@ exports.register = async (req, res) => {
 
     const hashedPass = await bcrypt.hash(req.body.password, salt);
     const newUserAccount = await User.create({
-      id: uuidv4(),
       login: req.body.login,
       password: hashedPass,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
     });
+    const { id, login, email } = newUserAccount;
+    await sendEmail(confirmationTemplate(email, login));
     const payload = {
-      id: newUserAccount.id,
-      login: newUserAccount.login,
+      id,
+      login,
     };
     const token = jwt.sign({ data: payload }, process.env.JWT_TOKEN, {
       expiresIn: process.env.JWT_EXPIRATION_DATE,
@@ -101,16 +123,6 @@ const generateResetToken = length => new Promise((resolve, reject) => {
   });
 });
 
-const generateEmailMessage = (address, token) => {
-  const msg = {
-    to: address,
-    from: "jozwa.zawadiaka@gmail.com",
-    subject: "Password reset token",
-    text: token,
-  };
-  return msg;
-};
-
 const removeResetToken = async userId => {
   try {
     const userAccount = await User.findByPk(userId);
@@ -145,8 +157,8 @@ exports.sendResetToken = async (req, res) => {
     userAccount.isResetTokenValid = true;
     await userAccount.save();
     setTimeout(() => removeResetToken(userAccount.id), 1800010);
-    const emailMsg = generateEmailMessage(userAccount.email, resetToken);
-    await sgMail.send(emailMsg);
+    const emailMsg = tokenResetTemplate(userAccount.email, resetToken);
+    await sendEmail(emailMsg);
     return res.status(200).json({ msg: "Success", success: true });
   } catch (err) {
     console.warn(err.message);
