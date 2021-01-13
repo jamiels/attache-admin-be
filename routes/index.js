@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth_controller");
 const restApiController = require("../controllers/rest_api_controller");
+const quoteServerController = require("../controllers/quote_server_controller");
 const validate = require("../utility/validators");
 
 const checkToken = (req, res, next) => {
@@ -16,7 +17,7 @@ const checkToken = (req, res, next) => {
     next();
   } else {
     // If header is undefined return Forbidden (403)
-    res.sendStatus(403);
+    res.sendStatus(401);
   }
 };
 
@@ -32,5 +33,7 @@ router.get("/:object/:id", checkToken, restApiController.retrieve); // will chan
 
 router.delete("/:object/:id", checkToken, restApiController.delete);
 router.patch("/:object/:id", checkToken, restApiController.edit);
+
+router.get("/quoteserver/:action", checkToken, quoteServerController.getQuote);
 
 module.exports = router;
