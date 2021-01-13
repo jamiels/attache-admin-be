@@ -1,8 +1,8 @@
 const { Model, DataTypes } = require("sequelize");
 const { sequelizeConnection } = require("../utility/db_connection");
 
-const VIDEO = sequelizeConnection.define(
-  "VIDEO",
+const QUOTESERVER = sequelizeConnection.define(
+  "QUOTESERVER",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -14,27 +14,22 @@ const VIDEO = sequelizeConnection.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    url: {
+    ipAddress: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    createdOn: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    isEnabled: {
-      type: DataTypes.BOOLEAN,
+    port: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: true,
     },
   },
   {
     sequelizeConnection,
-    modelName: "VIDEO",
+    modelName: "QUOTESERVER",
     timestamps: true,
     createdAt: "CREATED_DT",
     updatedAt: false,
     createdOn: false,
   },
 );
-module.exports = VIDEO;
+module.exports = QUOTESERVER;
