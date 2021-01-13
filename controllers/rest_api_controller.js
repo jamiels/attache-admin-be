@@ -1,19 +1,8 @@
-const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const Video = require("../models/video");
 const User = require("../models/user");
-
-const getUserDataFromJWT = async token => {
-  const decodedUserToken = await jwt.verify(token, process.env.JWT_TOKEN);
-  const { id, login } = decodedUserToken.data;
-  console.log(decodedUserToken);
-  const adminUser = await User.findByPk(id);
-  console.log(adminUser);
-  if (!adminUser) {
-    return false;
-  }
-  return adminUser;
-};
+const getUserDataFromJWT = require("../utility/getUserFromToken");
+const logError = require("../utility/logError");
 
 const getModel = type => {
   if (type !== "video" && type !== "user") {
@@ -24,11 +13,6 @@ const getModel = type => {
     user: User,
   };
   return modelEnum[type];
-};
-
-const logError = err => {
-  console.warn(err.message);
-  console.warn(err.stack);
 };
 
 const recordsRetriever = async (Model, id) => {
@@ -43,7 +27,7 @@ exports.create = async (req, res) => {
   try {
     const adminUser = await getUserDataFromJWT(req.token);
     if (!adminUser) {
-      return res.status(401).json({ err: "Token wrong", success: false });
+      return res.status(403).json({ err: "Token wrong", success: false });
     }
     const { properties } = req.body;
     const Model = getModel(req.params.object);
@@ -63,7 +47,7 @@ exports.retrieveAll = async (req, res) => {
   try {
     const adminUser = await getUserDataFromJWT(req.token);
     if (!adminUser) {
-      return res.status(401).json({ err: "Token wrong", success: false });
+      return res.status(403).json({ err: "Token wrong", success: false });
     }
     const Model = getModel(req.params.object);
     const records = await Model.findAll();
@@ -78,7 +62,7 @@ exports.retrieve = async (req, res) => {
   try {
     const checkToken = await getUserDataFromJWT(req.token);
     if (!checkToken) {
-      return res.status(401).json({ err: "Token wrong", success: false });
+      return res.status(403).json({ err: "Token wrong", success: false });
     }
     // eslint-disable-next-line
     let { object, id } = req.params;
@@ -97,7 +81,7 @@ exports.delete = async (req, res) => {
   try {
     const checkToken = await getUserDataFromJWT(req.token);
     if (!checkToken) {
-      return res.status(401).json({ err: "Token wrong", success: false });
+      return res.status(403).json({ err: "Token wrong", success: false });
     }
     const { object, id } = req.params;
     const record = await recordsRetriever(getModel(object), id);
@@ -113,7 +97,7 @@ exports.edit = async (req, res) => {
   try {
     const checkToken = await getUserDataFromJWT(req.token);
     if (!checkToken) {
-      return res.status(401).json({ err: "Token wrong", success: false });
+      return res.status(403).json({ err: "Token wrong", success: false });
     }
     const { properties } = req.body;
     const { object, id } = req.params;
