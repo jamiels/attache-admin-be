@@ -1,9 +1,9 @@
 ## Table of contents
 
-- [Local deployment](#--local-deployment)
+- [Local deployment](#-local-deployment)
 - [Using endpoints](#--using-endpoints)
-  - [Account registration](#--account-registration) 
-  - [Authentication](#--authentication) 
+  - [Account registration](#-account-registration) 
+  - [Authentication](#authentication) 
   - [Password reset](#--password-reset) 
   - [REST API](#--rest-api)
 
