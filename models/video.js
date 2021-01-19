@@ -1,8 +1,8 @@
 const { Model, DataTypes } = require("sequelize");
 const { sequelizeConnection } = require("../utility/db_connection");
 
-const VIDEO = sequelizeConnection.define(
-  "VIDEO",
+const Video = sequelizeConnection.define(
+  "Video",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -18,10 +18,6 @@ const VIDEO = sequelizeConnection.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    createdOn: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
     isEnabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -30,11 +26,11 @@ const VIDEO = sequelizeConnection.define(
   },
   {
     sequelizeConnection,
-    modelName: "VIDEO",
+    modelName: "Video",
     timestamps: true,
     createdAt: "CREATED_DT",
     updatedAt: false,
     createdOn: false,
   },
 );
-module.exports = VIDEO;
+module.exports = Video;

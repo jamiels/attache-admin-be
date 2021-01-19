@@ -1,8 +1,8 @@
 const { Model, DataTypes } = require("sequelize");
 const { sequelizeConnection } = require("../utility/db_connection");
 
-const USER = sequelizeConnection.define(
-  "USER",
+const User = sequelizeConnection.define(
+  "User",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -51,7 +51,7 @@ const USER = sequelizeConnection.define(
   },
   {
     sequelizeConnection,
-    modelName: "USER",
+    modelName: "User",
     timestamps: true,
     createdAt: "CREATED_DT",
     updatedAt: false,
@@ -59,4 +59,4 @@ const USER = sequelizeConnection.define(
   },
 );
 
-module.exports = USER;
+module.exports = User;

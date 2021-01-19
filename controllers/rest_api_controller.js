@@ -3,19 +3,26 @@ const Video = require("../models/video");
 const User = require("../models/user");
 const getUserDataFromJWT = require("../utility/getUserFromToken");
 const logError = require("../utility/logError");
+const QUOTESERVER = require("../models/quote_server");
 
 const getModel = type => {
-  if (type !== "video" && type !== "user") {
-    throw new Error("Wrong type parameter");
+  if (type !== "video" && type !== "user" && type !== "quoteserver") {
+    return false;
   }
   const modelEnum = {
     video: Video,
     user: User,
+    quoteserver: QUOTESERVER,
   };
   return modelEnum[type];
 };
 
 const recordsRetriever = async (Model, id) => {
+  if (!Model) {
+    throw new Error(
+      "Can't retrieve the record. Please check the type parameter",
+    );
+  }
   const record = await Model.findByPk(id);
   if (!record) {
     throw new Error("Can't retrieve the record. Please check id");
@@ -31,6 +38,7 @@ exports.create = async (req, res) => {
     }
     const { properties } = req.body;
     const Model = getModel(req.params.object);
+    console.log(properties);
     const newRecord = await Model.create({
       ...properties,
     });
@@ -107,6 +115,23 @@ exports.edit = async (req, res) => {
     await record.save();
     // const updatedRecord = {...record, properties};
     return res.status(200).json({ msg: "Success", success: true, record });
+  } catch (err) {
+    logError(err);
+    return res.status(400).json({ err: "Somethings wrong", success: false });
+  }
+};
+
+// I am not sure if you wanted jwt token check in this one
+exports.getVideos = async (req, res) => {
+  try {
+    const videos = await Video.findAll({
+      where: {
+        isEnabled: true,
+      },
+      order: [["CREATED_DT", "DESC"]], // spec says to display most recent first, with incremental id, this will work
+    });
+    console.log(videos);
+    return res.status(200).json({ msg: "Success", success: true, videos });
   } catch (err) {
     logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
