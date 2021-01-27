@@ -22,21 +22,31 @@ const checkToken = (req, res, next) => {
 };
 
 router.get("/getVideos", restApiController.getVideos);
+router.put("/changeFlag/:object/:id", restApiController.changeFlag);
 
 // to do - add validators
 router.post("/register", validate.register, authController.register);
 router.post("/authenticate", validate.login, authController.login);
 router.post("/sendResetToken", validate.email, authController.sendResetToken);
 router.post("/resetPassword", validate.password, authController.resetPassword);
+router.post(
+  "/resetUserPassword",
+  checkToken,
+  authController.resetPasswordByAdmin,
+);
 router.post("/:object", checkToken, restApiController.create);
 
 router.get("/:object", checkToken, restApiController.retrieveAll);
 router.get("/:object/:id", checkToken, restApiController.retrieve); // will change to one method for both
 
 router.delete("/:object/:id", checkToken, restApiController.delete);
-router.patch("/:object/:id", checkToken, restApiController.edit);
+router.put("/:object/:id", checkToken, restApiController.edit);
 
-router.get("/quoteserver/:action", checkToken, quoteServerController.getQuote);
+router.get(
+  "/quoteserver/:id/:action",
+  checkToken,
+  quoteServerController.getQuote,
+);
 
 // I am not sure if you wanted jwt token check in this one
 module.exports = router;

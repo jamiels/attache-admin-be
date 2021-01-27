@@ -2,6 +2,7 @@ const net = require("net");
 const events = require("events");
 const getUserDataFromJWT = require("../utility/getUserFromToken");
 const logError = require("../utility/logError");
+const QUOTESERVER = require("../models/quote_server");
 
 const mercury = (ms, promise) => {
   // Create a promise that rejects in <ms> milliseconds

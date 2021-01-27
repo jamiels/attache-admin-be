@@ -4,6 +4,9 @@ const sgMail = require("@sendgrid/mail");
 const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const User = require("../models/user");
+const getUserDataFromJWT = require("../utility/getUserFromToken");
+const logError = require("../utility/logError");
+
 // const { salt } = process.env;
 const salt = bcrypt.genSaltSync(10);
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -20,7 +23,7 @@ const confirmationTemplate = (address, username) => {
   const msg = {
     to: address,
     subject: "Created account and we want to notify you",
-    text: `Hello there, ${username}. Thanks for registering at attache. If you didn't do that you need to do something.`,
+    text: `Hello there, ${username}. Thanks for registering at attache. iid  If you didn't do that you need to do something.`,
   };
   return msg;
 };
@@ -65,9 +68,7 @@ exports.register = async (req, res) => {
       .status(201)
       .json({ msg: "Success", success: true, token: `Bearer ${token}` });
   } catch (err) {
-    console.warn(err.message);
-    console.warn(err.stack);
-    console.warn(req.body);
+    logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };
@@ -106,9 +107,7 @@ exports.login = async (req, res) => {
       token: `Bearer ${token}`,
     });
   } catch (err) {
-    console.warn(err.message);
-    console.warn(err.stack);
-    console.warn(req.body);
+    logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };
@@ -133,8 +132,7 @@ const removeResetToken = async userId => {
     userAccount.tokenExpirationDate = null;
     userAccount.isResetTokenValid = false;
   } catch (err) {
-    console.warn(err.message);
-    console.warn(err.stack);
+    logError(err);
   }
 };
 
@@ -161,9 +159,7 @@ exports.sendResetToken = async (req, res) => {
     await sendEmail(emailMsg);
     return res.status(200).json({ msg: "Success", success: true });
   } catch (err) {
-    console.warn(err.message);
-    console.warn(err.stack);
-    console.warn(req.body);
+    logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };
@@ -195,9 +191,25 @@ exports.resetPassword = async (req, res) => {
       .status(201)
       .json({ msg: "Success", success: true, token: `Bearer ${token}` });
   } catch (err) {
-    console.warn(err.message);
-    console.warn(err.stack);
-    console.warn(req.body);
+    logError(err);
+    return res.status(400).json({ err: "Somethings wrong", success: false });
+  }
+};
+
+exports.resetPasswordByAdmin = async (req, res) => {
+  try {
+    const adminUser = await getUserDataFromJWT(req.token);
+    if (!adminUser) {
+      return res.status(403).json({ err: "Token wrong", success: false });
+    }
+    const { password, id } = req.body;
+    const userAccount = User.findByPk(id);
+    const hashedPass = await bcrypt.hash(password, salt);
+    userAccount.password = hashedPass;
+    await userAccount.save();
+    return res.status(201).json({ msg: "Success", success: true });
+  } catch (err) {
+    logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };

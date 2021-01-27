@@ -5,7 +5,7 @@ const getUserDataFromJWT = require("../utility/getUserFromToken");
 const logError = require("../utility/logError");
 const QUOTESERVER = require("../models/quote_server");
 
-const getModel = type => {
+const getModel = (type, attr = false) => {
   if (type !== "video" && type !== "user" && type !== "quoteserver") {
     return false;
   }
@@ -14,7 +14,15 @@ const getModel = type => {
     user: User,
     quoteserver: QUOTESERVER,
   };
-  return modelEnum[type];
+  if (!attr) {
+    return modelEnum[type];
+  }
+  const attributesEnum = {
+    video: ["id", "name", "url", "isEnabled", "CREATED_DT"],
+    user: ["id", "firstName", "lastName", "email", "isEnabled"],
+    quoteserver: ["id", "name", "ipAddress", "port"],
+  };
+  return { Model: modelEnum[type], attr: attributesEnum[type] };
 };
 
 const recordsRetriever = async (Model, id) => {
@@ -57,9 +65,11 @@ exports.retrieveAll = async (req, res) => {
     if (!adminUser) {
       return res.status(403).json({ err: "Token wrong", success: false });
     }
-    const Model = getModel(req.params.object);
-    const records = await Model.findAll();
-    return res.status(200).json({ msg: "Success", success: true, records });
+    const { Model, attr } = getModel(req.params.object, true);
+    const records = await Model.findAll({
+      attributes: [...attr],
+    });
+    return res.status(200).json(records);
   } catch (err) {
     logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
@@ -77,7 +87,18 @@ exports.retrieve = async (req, res) => {
     if (!id) {
       id = req.body.id;
     }
-    const record = await recordsRetriever(getModel(object), id);
+    const { Model, attr } = getModel(req.params.object, true);
+    const record = await Model.findAll({
+      where: {
+        id,
+      },
+      attributes: [...attr],
+    });
+    console.log(attr);
+    console.log(record);
+    console.log(id);
+    console.log(object);
+
     return res.status(200).json({ msg: "Success", success: true, record });
   } catch (err) {
     logError(err);
@@ -121,6 +142,19 @@ exports.edit = async (req, res) => {
   }
 };
 
+exports.changeFlag = async (req, res) => {
+  try {
+    const { object, id } = req.params;
+    const record = await recordsRetriever(getModel(object), id);
+    record.isEnabled = !record.isEnabled;
+    await record.save();
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    logError(err);
+    return res.status(400).json({ err: "Somethings wrong", success: false });
+  }
+};
+
 // I am not sure if you wanted jwt token check in this one
 exports.getVideos = async (req, res) => {
   try {
@@ -128,10 +162,11 @@ exports.getVideos = async (req, res) => {
       where: {
         isEnabled: true,
       },
+      attributes: ["id", "name", "url", "isEnabled", "CREATED_DT"],
       order: [["CREATED_DT", "DESC"]], // spec says to display most recent first, with incremental id, this will work
     });
     console.log(videos);
-    return res.status(200).json({ msg: "Success", success: true, videos });
+    return res.status(200).json(videos);
   } catch (err) {
     logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });

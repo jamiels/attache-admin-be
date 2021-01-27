@@ -5,10 +5,12 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const got = require("got");
 const net = require("net");
+const cors = require("cors");
 
 const indexRouter = require("./routes/index");
 
 const app = express();
+app.use(cors());
 
 app.use(express.json());
 app.use(logger("dev"));
