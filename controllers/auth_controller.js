@@ -64,9 +64,12 @@ exports.register = async (req, res) => {
     const token = jwt.sign({ data: payload }, process.env.JWT_TOKEN, {
       expiresIn: process.env.JWT_EXPIRATION_DATE,
     });
-    return res
-      .status(201)
-      .json({ msg: "Success", success: true, token: `Bearer ${token}` });
+    return res.status(201).json({
+      msg: "Success",
+      success: true,
+      token: `Bearer ${token}`,
+      userId: id,
+    });
   } catch (err) {
     logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
@@ -105,6 +108,7 @@ exports.login = async (req, res) => {
       msg: "Login succesful",
       success: true,
       token: `Bearer ${token}`,
+      userId: userAccount.id,
     });
   } catch (err) {
     logError(err);
