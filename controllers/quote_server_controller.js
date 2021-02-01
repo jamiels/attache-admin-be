@@ -39,6 +39,7 @@ const hermes = (message, host, port, auth) => new Promise((resolve, reject) => {
     resolve("Connection closed");
   });
   socket.on("error", err => {
+    logError(err);
     reject(err);
   });
 });
@@ -57,9 +58,12 @@ exports.getQuote = async (req, res) => {
     const server = await QUOTESERVER.findByPk(id);
     const { ipAddress, port, authMessage } = server;
     const decryptedAuth = aesUtil.decrypt(authMessage);
+    console.log(ipAddress);
+    console.log(port);
+    console.log(decryptedAuth);
     const answer = await mercury(
       1000,
-      hermes(action.toUpperCase, ipAddress, port, decryptedAuth),
+      hermes(action.toUpperCase(), ipAddress, port, decryptedAuth),
     );
     return res.status(201).json({ msg: "Success", success: true, answer });
   } catch (err) {
@@ -67,8 +71,3 @@ exports.getQuote = async (req, res) => {
     return res.status(400).json({ err: "Somethings wrong", success: false });
   }
 };
-/*
-(7070, "priceserver.attache.app");
-socket.on("connect", () => {
-	console.log("connected");
-	socket.write("AUTH test1@test.com password1", cb => { */
