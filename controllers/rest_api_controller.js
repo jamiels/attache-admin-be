@@ -46,7 +46,7 @@ exports.create = async (req, res) => {
       return res.status(403).json({ err: "Token wrong", success: false });
     }
     let { properties } = req.body;
-    const Model = getModel(req.params.object);
+    const { Model, attr } = getModel(req.params.object, true);
     console.log(properties);
     if (req.params.object === "quoteserver") {
       properties = {
@@ -57,9 +57,13 @@ exports.create = async (req, res) => {
     const newRecord = await Model.create({
       ...properties,
     });
+    const securedRecord = {};
+    for (let i = 0; i < attr.length; i++) {
+      securedRecord[attr[i]] = newRecord[attr[i]];
+    }
     return res
       .status(201)
-      .json({ msg: "Success", success: true, created: newRecord });
+      .json({ msg: "Success", success: true, created: securedRecord });
   } catch (err) {
     logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
