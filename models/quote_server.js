@@ -22,6 +22,10 @@ const QUOTESERVER = sequelizeConnection.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    authMessage: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   {
     sequelizeConnection,

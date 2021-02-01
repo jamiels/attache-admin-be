@@ -4,6 +4,7 @@ const User = require("../models/user");
 const getUserDataFromJWT = require("../utility/getUserFromToken");
 const logError = require("../utility/logError");
 const QUOTESERVER = require("../models/quote_server");
+const aesUtility = require("../utility/aes_utility");
 
 const getModel = (type, attr = false) => {
   if (type !== "video" && type !== "user" && type !== "quoteserver") {
@@ -44,9 +45,15 @@ exports.create = async (req, res) => {
     if (!adminUser) {
       return res.status(403).json({ err: "Token wrong", success: false });
     }
-    const { properties } = req.body;
+    let { properties } = req.body;
     const Model = getModel(req.params.object);
     console.log(properties);
+    if (req.params.object === "quoteserver") {
+      properties = {
+        ...properties,
+        authMessage: aesUtility.encrypt(properties.authMessage),
+      };
+    }
     const newRecord = await Model.create({
       ...properties,
     });
