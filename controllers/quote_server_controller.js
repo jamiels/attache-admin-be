@@ -1,5 +1,6 @@
 const net = require("net");
 const events = require("events");
+const Telnet = require("telnet-client");
 const getUserDataFromJWT = require("../utility/getUserFromToken");
 const logError = require("../utility/logError");
 const QUOTESERVER = require("../models/quote_server");
@@ -20,16 +21,16 @@ const mercury = (ms, promise) => {
   return Promise.race([promise, timeout]);
 };
 const hermes = (message, host, port, auth) => new Promise((resolve, reject) => {
-  const socket = net.Socket();
-  socket.connect(port, host);
+  // const socket = new net.Socket();
+
+  const socket = net.createConnection(port, host);
+  // socket.connect(port, host);
   socket.on("connect", () => {
     console.log("connected");
     socket.write(auth, cb => {
       console.log(cb);
     });
-    socket.write(message, cb => {
-      console.log(cb);
-    });
+    socket.write(message);
   });
   socket.on("data", data => {
     // JSON.parse(msg) .toString()
@@ -43,6 +44,30 @@ const hermes = (message, host, port, auth) => new Promise((resolve, reject) => {
     reject(err);
   });
 });
+
+const hermesUgh = async (message, host, port, auth) => {
+  const connection = new Telnet();
+
+  // these parameters are just examples and most probably won't work for your use-case.
+  const params = {
+    host,
+    port,
+    negotiationMandatory: false, // or negotiationMandatory: false
+    timeout: 1500,
+  };
+  console.log(params);
+  console.log(connection);
+  try {
+    await connection.connect(params);
+    console.log(connection);
+
+    const res = await connection.send(auth);
+    console.log("async result:", res);
+  } catch (error) {
+    logError(error);
+    // handle the throw (timeout)
+  }
+};
 
 exports.getQuote = async (req, res) => {
   try {
@@ -62,9 +87,15 @@ exports.getQuote = async (req, res) => {
     console.log(port);
     console.log(decryptedAuth);
     const answer = await mercury(
-      1000,
+      3000,
       hermes(action.toUpperCase(), ipAddress, port, decryptedAuth),
-    );
+    ); /*
+    const answer = await hermesUgh(
+      action.toUpperCase(),
+      ipAddress,
+      port,
+      decryptedAuth,
+    ); */
     return res.status(201).json({ msg: "Success", success: true, answer });
   } catch (err) {
     logError(err);
