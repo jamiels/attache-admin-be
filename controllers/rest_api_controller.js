@@ -1,10 +1,13 @@
 const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcryptjs");
 const Video = require("../models/video");
 const User = require("../models/user");
 const getUserDataFromJWT = require("../utility/getUserFromToken");
 const logError = require("../utility/logError");
 const QUOTESERVER = require("../models/quote_server");
 const aesUtility = require("../utility/aes_utility");
+
+const salt = bcrypt.genSaltSync(10);
 
 const getModel = (type, attr = false) => {
   if (type !== "video" && type !== "user" && type !== "quoteserver") {
@@ -52,6 +55,11 @@ exports.create = async (req, res) => {
       properties = {
         ...properties,
         authMessage: aesUtility.encrypt(properties.authMessage),
+      };
+    } else if (req.params.object === "user") {
+      properties = {
+        ...properties,
+        password: await bcrypt.hash(properties.password, salt),
       };
     }
     const newRecord = await Model.create({
@@ -143,7 +151,9 @@ exports.edit = async (req, res) => {
     const { object, id } = req.params;
     const record = await recordsRetriever(getModel(object), id);
     // eslint-disable-next-line
-    Object.entries(properties).forEach(([key, value]) => (record[key] = value));
+    Object.entries(properties).forEach(async ([key, value]) => key === "password"
+      ? (record[key] = await bcrypt.hash(value, salt))
+      : (record[key] = value));
     await record.save();
     // const updatedRecord = {...record, properties};
     return res.status(200).json({ msg: "Success", success: true, record });

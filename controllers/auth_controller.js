@@ -207,7 +207,8 @@ exports.resetPasswordByAdmin = async (req, res) => {
       return res.status(403).json({ err: "Token wrong", success: false });
     }
     const { password, id } = req.body;
-    const userAccount = User.findByPk(id);
+    const userAccount = await User.findByPk(id);
+    console.log(userAccount);
     const hashedPass = await bcrypt.hash(password, salt);
     userAccount.password = hashedPass;
     await userAccount.save();
