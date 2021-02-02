@@ -23,16 +23,15 @@ const mercury = (ms, promise) => {
 const hermes = (message, host, port, auth) => new Promise((resolve, reject) => {
   // const socket = new net.Socket();
 
-  const socket = net.createConnection(port, host);
+  const socket = new net.Socket();
   // socket.connect(port, host);
-  socket.on("connect", () => {
+  socket.connect(port, host, () => {
     console.log("connected");
-    socket.write(auth, cb => {
-      console.log(cb);
-    });
-    socket.write(message);
+    socket.write(`${auth} \n`);
+    socket.write(`${message} \n`);
   });
   socket.on("data", data => {
+    console.log(`Received: ${data}`);
     // JSON.parse(msg) .toString()
     resolve(data);
   });
@@ -44,30 +43,6 @@ const hermes = (message, host, port, auth) => new Promise((resolve, reject) => {
     reject(err);
   });
 });
-
-const hermesUgh = async (message, host, port, auth) => {
-  const connection = new Telnet();
-
-  // these parameters are just examples and most probably won't work for your use-case.
-  const params = {
-    host,
-    port,
-    negotiationMandatory: false, // or negotiationMandatory: false
-    timeout: 1500,
-  };
-  console.log(params);
-  console.log(connection);
-  try {
-    await connection.connect(params);
-    console.log(connection);
-
-    const res = await connection.send(auth);
-    console.log("async result:", res);
-  } catch (error) {
-    logError(error);
-    // handle the throw (timeout)
-  }
-};
 
 exports.getQuote = async (req, res) => {
   try {
@@ -87,15 +62,9 @@ exports.getQuote = async (req, res) => {
     console.log(port);
     console.log(decryptedAuth);
     const answer = await mercury(
-      3000,
-      hermes(action.toUpperCase(), ipAddress, port, decryptedAuth),
-    ); /*
-    const answer = await hermesUgh(
-      action.toUpperCase(),
-      ipAddress,
-      port,
-      decryptedAuth,
-    ); */
+      2000,
+      hermes(action.toUpperCase().trim(), ipAddress, port, decryptedAuth.trim()),
+    );
     return res.status(201).json({ msg: "Success", success: true, answer });
   } catch (err) {
     logError(err);
