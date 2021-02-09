@@ -69,6 +69,7 @@ exports.register = async (req, res) => {
       success: true,
       token: `Bearer ${token}`,
       userId: id,
+      tokenExpiresIn: Date.now() + process.env.JWT_EXPIRATION_DATE,
     });
   } catch (err) {
     logError(err);
@@ -109,6 +110,7 @@ exports.login = async (req, res) => {
       success: true,
       token: `Bearer ${token}`,
       userId: userAccount.id,
+      tokenExpiresIn: Date.now() + process.env.JWT_EXPIRATION_DATE,
     });
   } catch (err) {
     logError(err);
@@ -191,9 +193,13 @@ exports.resetPassword = async (req, res) => {
     const token = jwt.sign({ data: payload }, process.env.JWT_TOKEN, {
       expiresIn: process.env.JWT_EXPIRATION_DATE,
     });
-    return res
-      .status(201)
-      .json({ msg: "Success", success: true, token: `Bearer ${token}` });
+    return res.status(201).json({
+      msg: "Success",
+      success: true,
+      token: `Bearer ${token}`,
+      userId: userAccount.id,
+      tokenExpiresIn: Date.now() + process.env.JWT_EXPIRATION_DATE,
+    });
   } catch (err) {
     logError(err);
     return res.status(400).json({ err: "Somethings wrong", success: false });
