@@ -1,13 +1,6 @@
 const { check, validationResult } = require("express-validator");
 
 exports.register = [
-  check("login")
-    .trim()
-    .escape()
-    .not()
-    .isEmpty()
-    .withMessage("User name can not be empty!")
-    .bail(),
   check("firstName")
     .trim()
     .escape()
@@ -54,13 +47,6 @@ exports.register = [
 ];
 
 exports.login = [
-  check("login")
-    .trim()
-    .escape()
-    .not()
-    .isEmpty()
-    .withMessage("User name can not be empty!")
-    .bail(),
   check("password")
     .trim()
     .escape()

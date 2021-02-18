@@ -3,7 +3,7 @@ const User = require("../models/user");
 
 const getUserDataFromJWT = async token => {
   const decodedUserToken = await jwt.verify(token, process.env.JWT_TOKEN);
-  const { id, login } = decodedUserToken.data;
+  const { id } = decodedUserToken.data;
   console.log(decodedUserToken);
   const adminUser = await User.findByPk(id);
   console.log(adminUser);

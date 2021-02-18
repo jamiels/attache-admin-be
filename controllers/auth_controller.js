@@ -19,11 +19,11 @@ const tokenResetTemplate = (address, token) => {
   return msg;
 };
 
-const confirmationTemplate = (address, username) => {
+const confirmationTemplate = address => {
   const msg = {
     to: address,
     subject: "Created account and we want to notify you",
-    text: `Hello there, ${username}. Thanks for registering at attache. iid  If you didn't do that you need to do something.`,
+    text: "Hello there. Thanks for registering at attache. iid  If you didn't do that you need to do something.",
   };
   return msg;
 };
@@ -38,28 +38,27 @@ exports.register = async (req, res) => {
   try {
     const checkUsername = await User.findOne({
       where: {
-        login: req.body.login,
+        email: req.body.email,
       },
     });
     if (checkUsername) {
       return res
         .status(409)
-        .json({ err: "Login already taken", success: false }); // maybe 422?
+        .json({ err: "email already taken", success: false }); // maybe 422?
     }
 
     const hashedPass = await bcrypt.hash(req.body.password, salt);
     const newUserAccount = await User.create({
-      login: req.body.login,
       password: hashedPass,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
     });
-    const { id, login, email } = newUserAccount;
-    await sendEmail(confirmationTemplate(email, login));
+    const { id, email } = newUserAccount;
+    await sendEmail(confirmationTemplate(email));
     const payload = {
       id,
-      login,
+      email,
     };
     const token = jwt.sign({ data: payload }, process.env.JWT_TOKEN, {
       expiresIn: process.env.JWT_EXPIRATION_DATE,
@@ -81,12 +80,12 @@ exports.login = async (req, res) => {
   try {
     const userAccount = await User.findOne({
       where: {
-        login: req.body.login,
+        email: req.body.email,
       },
     });
     if (!userAccount) {
       return res.status(401).json({
-        err: "User account with this login could not be found",
+        err: "User account with this email could not be found",
         success: false,
       });
     }
@@ -100,7 +99,7 @@ exports.login = async (req, res) => {
 
     const payload = {
       id: userAccount.id,
-      login: userAccount.login,
+      email: userAccount.email,
     };
     const token = jwt.sign({ data: payload }, process.env.JWT_TOKEN, {
       expiresIn: process.env.JWT_EXPIRATION_DATE,
@@ -188,7 +187,7 @@ exports.resetPassword = async (req, res) => {
     await userAccount.save();
     const payload = {
       id: userAccount.id,
-      login: userAccount.login,
+      email: userAccount.email,
     };
     const token = jwt.sign({ data: payload }, process.env.JWT_TOKEN, {
       expiresIn: process.env.JWT_EXPIRATION_DATE,

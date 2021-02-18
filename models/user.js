@@ -10,10 +10,6 @@ const User = sequelizeConnection.define(
       allowNull: false,
       primaryKey: true,
     },
-    login: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     firstName: {
       type: DataTypes.STRING,
       allowNull: false,
